@@ -1,0 +1,83 @@
+import random
+from pgzero.keyboard import keyboard, keys
+from pgzero.game import screen
+from pgzero.actor import Actor
+
+WIDTH = 650
+HEIGHT = 500
+
+TITLE = 'Invasão Espacial'
+FPS = 60  # Aumentamos o FPS para uma animação mais suave
+
+bg = Actor("galaxia")
+player = Actor('player_blue', (WIDTH // 2, HEIGHT - 50))  # Centraliza o jogador
+enemies = []
+lasers = []
+score = 0
+vidas = 3
+
+def desenhar():
+    screen.clear()  # Limpa a tela a cada frame
+    bg.draw()
+    player.draw()
+    for inimigo in enemies:
+        inimigo.draw()
+    for laser in lasers:
+        laser.draw()
+    screen.draw.text(f"Pontuação: {score}", (10, 10), color="white", fontsize=24)
+    screen.draw.text(f"Vidas: {vidas}", (WIDTH - 100, 10), color="white", fontsize=24)
+
+def atualizar(dt):
+    global score, vidas, lasers
+
+    # Movimento do jogador
+    if keyboard.left and player.left > 0:
+        player.x -= 5
+    if keyboard.right and player.right < WIDTH:
+        player.x += 5
+
+    # Movimento dos inimigos
+    for inimigo in enemies:
+        inimigo.y += inimigo.speed  # Usa a velocidade do inimigo específico
+        if inimigo.top > HEIGHT:
+            enemies.remove(inimigo)
+            vidas -= 1
+            if vidas == 0:
+                game_over()
+
+    # Movimento dos lasers
+    for laser in lasers:
+        laser.y -= 10
+        if laser.top < 0:
+            lasers.remove(laser)
+
+    # Colisões
+    for laser in lasers.copy():
+        for inimigo in enemies.copy():
+            if laser.colliderect(inimigo):
+                lasers.remove(laser)
+                enemies.remove(inimigo)
+                score += 10
+
+    # Criação de novos inimigos
+    if random.randint(0, 100) < 3:  # Ajusta a frequência de criação de inimigos
+        novo_inimigo()
+
+def novo_inimigo():
+    tipo_inimigo = choice(['inimigo_vermelho', 'inimigo_laranja'])  # Exemplo de tipos de inimigos
+    x = random.randint(50, WIDTH - 50)
+    y = -50
+    inimigo = Actor(tipo_inimigo, pos=(x, y))
+    inimigo.speed = random.randint(2, 5)
+    enemies.append(inimigo)
+
+def ao_pressionar_tecla(tecla):
+    if tecla == keys.SPACE:
+        laser = Actor('laser', pos=player.midtop)
+        lasers.append(laser)
+
+def game_over():
+    # Código para exibir a tela de game over
+    # ...
+
+# ... (restante do seu código)
